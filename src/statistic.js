@@ -1,4 +1,4 @@
-import {toSeconds,calcPace} from './timeFormat';
+import {toSeconds,calcPace,formatTime} from './timeFormat';
 import vdot from './vdot';
 
 const MSG_SLOW = 'Вы пока бегаете довольно медленно. Вероятно, вы пока новичек. '+
@@ -17,21 +17,30 @@ const raceTypes = [
   {title:'Полумарафон',key:'hm',mc:'1:05:30'}
 ];
 
-function getRecomendation(pace){
+function getRecomendation(pace) {
   return {...pace,
     easy_msg:'длительный забег 60-90 минут. ('+ Math.floor(3600/toSeconds(pace.easy))+
       ' - '+ Math.ceil(5400/toSeconds(pace.easy)) +
       ' км)<br />Можно заменить велосипедом',
     threshold_msg:'Варианты тренировки:<ul><li>5 км темповый забег</li>'+
     '<li>Либо два по 3,5 км через 1,5 км отдыха</li>'+
-    '<li>5 по 1500 через минуту отдыха</li><li>8 по 1000 через минуту отдыха</li>',
-    interval_msg:'2-5 минут интервалы'
-    /*8 x 400 w/400 RI
-    6 x 800 w/400 RI
-    4 x 1200 (400 RI)
-    3 x 1600 w/1:00 RI
-    */
+    '<li>5 по 1500 через минуту отдыха</li><li>8 по 1000 через минуту отдыха</li></ul>',
+    interval_msg:'Варианты тренировки:<ul>'+
+    [
+      {format:'8 x 400',rest:'400 метров',time:toSeconds(pace.interval)*0.4},
+      {format:'6 x 800',rest:'400 метров',time:toSeconds(pace.interval)*0.8},
+      {format:'5 x 1000',rest:'600 метров',time:toSeconds(pace.interval)},
+      {format:'4 x 1200',rest:'800 метров',time:toSeconds(pace.interval)*1.2},
+      {format:'3 x 1600',rest:'800 метров',time:toSeconds(pace.interval)*1.6},
+    ].filter((s)=>testMPK(s.time)).reduce((list,s)=> list+'<li>'+s.format+' (за '+formatTime(s.time)+')'+
+    ' через '+s.rest+' отдыха</li>', '')+
+    '</ul>'
   }
+}
+
+function testMPK(time) {
+  //время МПК интервала должно быть от двух до 5 минут
+  return time > 120 && time < 300;
 }
 
 /** Возвращает тренировочные темпы по результатам последних соревнований*/

@@ -5,4 +5,5 @@
 для запуска нужен установленный node.js
 
   npm install
+  
   npm start
